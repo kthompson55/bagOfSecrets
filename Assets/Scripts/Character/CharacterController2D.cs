@@ -57,6 +57,11 @@ public class CharacterController2D : MonoBehaviour
         if(!fallen)
         {
             HandleMovement();
+            if(cheater.enabled && Input.GetButton("Cheat") && cheater.CanCheat())
+            {
+                transform.rotation = Quaternion.identity;
+                cheater.Cheat();
+            }
         }
     }
 
@@ -148,7 +153,7 @@ public class CharacterController2D : MonoBehaviour
         }
     }
 
-    void Fall()
+    public void Fall()
     {
         sack.GetComponent<Sack>().RollAway();
         fallen = true;
@@ -182,5 +187,25 @@ public class CharacterController2D : MonoBehaviour
                 liar.enabled = true;
                 break;
         }
+    }
+
+    public bool HasSecrets()
+    {
+        return thief.enabled || murderer.enabled || addict.enabled;
+    }
+
+    public bool IsMurderer()
+    {
+        return murderer.enabled;
+    }
+
+    public bool CanMurder()
+    {
+        return murderer.CanKill();
+    }
+
+    public void Murder()
+    {
+        murderer.Kill();
     }
 }

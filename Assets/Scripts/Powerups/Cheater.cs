@@ -1,15 +1,23 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Cheater : MonoBehaviour {
+public class Cheater : MonoBehaviour 
+{
+    public int numUses;
+    private int remainingUses;
 
-	// Use this for initialization
-	void Start () {
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
+    void Start()
+    {
+        remainingUses = numUses;
+    }
+
+    public void Cheat()
+    {
+        remainingUses--;
+    }
+
+    public bool CanCheat()
+    {
+        return remainingUses > 0;
+    }
 }

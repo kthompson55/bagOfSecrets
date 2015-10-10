@@ -129,7 +129,6 @@ public class CharacterController2D : MonoBehaviour
         if(thief.enabled)
         {
             rotationAmount /= thief.fallingReduction;
-            Debug.Log("thief active");
         }
         Quaternion currentFrameRotation = Quaternion.Euler(0, 0, rotationAmount);
 
@@ -163,18 +162,23 @@ public class CharacterController2D : MonoBehaviour
         switch (type)
         {
             case Pickup.PickupType.THIEF:
+                Debug.Log("Thief enabled");
                 thief.enabled = true;
                 break;
             case Pickup.PickupType.MURDERER:
+                Debug.Log("Murderer enabled");
                 murderer.enabled = true;
                 break;
             case Pickup.PickupType.CHEATER:
+                Debug.Log("Cheater enabled");
                 cheater.enabled = true;
                 break;
             case Pickup.PickupType.ADDICT:
+                Debug.Log("Addict enabled");
                 addict.enabled = true;
                 break;
             case Pickup.PickupType.LIAR:
+                Debug.Log("Liar enabled");
                 liar.enabled = true;
                 break;
         }

@@ -3,6 +3,11 @@ using System.Collections;
 
 [RequireComponent(typeof(BoxCollider))]
 [RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(Thief))]
+[RequireComponent(typeof(Murderer))]
+[RequireComponent(typeof(Cheater))]
+[RequireComponent(typeof(Addict))]
+[RequireComponent(typeof(Liar))]
 public class CharacterController2D : MonoBehaviour 
 {
     public GameObject sack;
@@ -16,19 +21,35 @@ public class CharacterController2D : MonoBehaviour
     public float fallDownAngle;
     public float jumpRotationInfluence;
 
-    // power-ups
-    
-
     private CharacterController controller;
     private bool jumping;
     private float jumpTracking;
     private bool fallen;
+
+    // power-ups
+    private Thief thief;
+    private Murderer murderer;
+    private Cheater cheater;
+    private Addict addict;
+    private Liar liar;
 
     void Start()
     {
         controller = GetComponent<CharacterController>();
         jumping = false;
         fallen = false;
+
+        thief = GetComponent<Thief>();
+        murderer = GetComponent<Murderer>();
+        cheater = GetComponent<Cheater>();
+        addict = GetComponent<Addict>();
+        liar = GetComponent<Liar>();
+
+        thief.enabled = false;
+        murderer.enabled = false;
+        cheater.enabled = false;
+        addict.enabled = false;
+        liar.enabled = false;
     }
 
     void Update()
@@ -108,6 +129,10 @@ public class CharacterController2D : MonoBehaviour
         Quaternion currentFrameRotation = Quaternion.Euler(0, 0, rotationAmount);
 
         // apply movement and rotation
+        if(addict.enabled)
+        {
+            horizontalMove *= addict.speedIncrease;
+        }
         Vector3 moveVector = new Vector3(horizontalMove, verticalMove, 0);
         controller.Move(moveVector);
         transform.Rotate(currentFrameRotation.eulerAngles);
@@ -126,5 +151,27 @@ public class CharacterController2D : MonoBehaviour
         GetComponent<Rigidbody>().useGravity = true;
         GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezePositionZ;
         controller.enabled = false;
+    }
+
+    public void EnablePowerUp(Pickup.PickupType type)
+    {
+        switch (type)
+        {
+            case Pickup.PickupType.THIEF:
+                thief.enabled = true;
+                break;
+            case Pickup.PickupType.MURDERER:
+                murderer.enabled = true;
+                break;
+            case Pickup.PickupType.CHEATER:
+                cheater.enabled = true;
+                break;
+            case Pickup.PickupType.ADDICT:
+                addict.enabled = true;
+                break;
+            case Pickup.PickupType.LIAR:
+                liar.enabled = true;
+                break;
+        }
     }
 }

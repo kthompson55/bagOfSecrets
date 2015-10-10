@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Thief : Pickup {
+public class Thief : MonoBehaviour 
+{
+    public float fallingReduction;
 
 	// Use this for initialization
 	void Start () {

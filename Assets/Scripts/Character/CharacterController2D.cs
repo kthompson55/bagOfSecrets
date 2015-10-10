@@ -126,6 +126,11 @@ public class CharacterController2D : MonoBehaviour
         {
             rotationAmount *= verticalMove * jumpRotationInfluence;
         }
+        if(thief.enabled)
+        {
+            rotationAmount /= thief.fallingReduction;
+            Debug.Log("thief active");
+        }
         Quaternion currentFrameRotation = Quaternion.Euler(0, 0, rotationAmount);
 
         // apply movement and rotation

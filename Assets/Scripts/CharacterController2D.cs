@@ -14,6 +14,10 @@ public class CharacterController2D : MonoBehaviour
     public float backwardRotationSpeed;
     public float fallingSpeedModifier;
     public float fallDownAngle;
+    public float jumpRotationInfluence;
+
+    // power-ups
+    
 
     private CharacterController controller;
     private bool jumping;
@@ -97,13 +101,16 @@ public class CharacterController2D : MonoBehaviour
                 rotationAmount = fallingSpeedModifier * (transform.rotation.eulerAngles.z - 360) * Time.deltaTime;
             }
         }
+        if(verticalMove > 0)
+        {
+            rotationAmount *= verticalMove * jumpRotationInfluence;
+        }
         Quaternion currentFrameRotation = Quaternion.Euler(0, 0, rotationAmount);
 
         // apply movement and rotation
         Vector3 moveVector = new Vector3(horizontalMove, verticalMove, 0);
         controller.Move(moveVector);
         transform.Rotate(currentFrameRotation.eulerAngles);
-        Debug.Log(transform.rotation.eulerAngles.z);
 
         // check for failure
         if (transform.rotation.eulerAngles.z > fallDownAngle && transform.rotation.eulerAngles.z < (360-fallDownAngle))

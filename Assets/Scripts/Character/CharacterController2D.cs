@@ -15,6 +15,7 @@ public class CharacterController2D : MonoBehaviour
     public float backwardMoveSpeed;
     public float jumpHeight;
     public float jumpSpeed;
+    public float movementRotationSpeed;
     public float rotationSpeed;
     public float fallingSpeedModifier;
     public float fallDownAngle;
@@ -24,6 +25,7 @@ public class CharacterController2D : MonoBehaviour
     private bool jumping;
     private float jumpTracking;
     private bool fallen;
+    private float previousGroundedY;
 
     // power-ups
     private Thief thief;
@@ -37,6 +39,7 @@ public class CharacterController2D : MonoBehaviour
         controller = GetComponent<CharacterController>();
         jumping = false;
         fallen = false;
+        previousGroundedY = transform.position.y;
 
         thief = GetComponent<Thief>();
         murderer = GetComponent<Murderer>();
@@ -108,11 +111,11 @@ public class CharacterController2D : MonoBehaviour
         // rotate based off the type of movement made this frame
         if (horizontalMove > 0)
         {
-            rotationAmount = (horizontalMove * Time.deltaTime) * rotationSpeed;
+            rotationAmount = (horizontalMove * Time.deltaTime) * movementRotationSpeed;
         }
         else if (horizontalMove < 0)
         {
-            rotationAmount = (horizontalMove * Time.deltaTime) * rotationSpeed;
+            rotationAmount = (horizontalMove * Time.deltaTime) * movementRotationSpeed;
         }
         else if(transform.rotation.eulerAngles.z != 0)
         {
@@ -129,6 +132,18 @@ public class CharacterController2D : MonoBehaviour
         if(verticalMove > 0)
         {
             rotationAmount *= verticalMove * jumpRotationInfluence;
+        }
+
+        if (!jumping && previousGroundedY != transform.position.y)
+        {
+            if(previousGroundedY < transform.position.y)
+            {
+                rotationAmount -= Mathf.Sign(horizontalMove) * Mathf.Abs(transform.position.y - previousGroundedY) * Time.deltaTime;
+            }
+            else
+            {
+                rotationAmount += Mathf.Sign(horizontalMove) * Mathf.Abs(transform.position.y - previousGroundedY) * Time.deltaTime;
+            }
         }
 
         float rotationInput = Input.GetAxis("Balance");
@@ -166,7 +181,12 @@ public class CharacterController2D : MonoBehaviour
         GetComponent<Rigidbody>().useGravity = true;
         GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezePositionZ;
         controller.enabled = false;
+        StartCoroutine("ReloadLevel");
+    }
 
+    IEnumerator ReloadLevel()
+    {
+        yield return new WaitForSeconds(5);
         Application.LoadLevel(Application.loadedLevel);
     }
 

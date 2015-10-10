@@ -15,8 +15,7 @@ public class CharacterController2D : MonoBehaviour
     public float backwardMoveSpeed;
     public float jumpHeight;
     public float jumpSpeed;
-    public float forwardRotationSpeed;
-    public float backwardRotationSpeed;
+    public float rotationSpeed;
     public float fallingSpeedModifier;
     public float fallDownAngle;
     public float jumpRotationInfluence;
@@ -109,11 +108,11 @@ public class CharacterController2D : MonoBehaviour
         // rotate based off the type of movement made this frame
         if (horizontalMove > 0)
         {
-            rotationAmount = (horizontalMove * Time.deltaTime) * forwardRotationSpeed;
+            rotationAmount = (horizontalMove * Time.deltaTime) * rotationSpeed;
         }
         else if (horizontalMove < 0)
         {
-            rotationAmount = (horizontalMove * Time.deltaTime) * backwardRotationSpeed;
+            rotationAmount = (horizontalMove * Time.deltaTime) * rotationSpeed;
         }
         else if(transform.rotation.eulerAngles.z != 0)
         {
@@ -131,6 +130,13 @@ public class CharacterController2D : MonoBehaviour
         {
             rotationAmount *= verticalMove * jumpRotationInfluence;
         }
+
+        float rotationInput = Input.GetAxis("Balance");
+        if(rotationInput != 0)
+        {
+            rotationAmount -= rotationInput * Time.deltaTime * rotationSpeed;
+        }
+
         if(thief.enabled)
         {
             rotationAmount /= thief.fallingReduction;
@@ -160,6 +166,8 @@ public class CharacterController2D : MonoBehaviour
         GetComponent<Rigidbody>().useGravity = true;
         GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezePositionZ;
         controller.enabled = false;
+
+        Application.LoadLevel(Application.loadedLevel);
     }
 
     public void EnablePowerUp(Pickup.PickupType type)

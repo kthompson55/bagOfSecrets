@@ -29,8 +29,8 @@ public class GameManager : MonoBehaviour
     {
 	    if(playerController.HasSecrets() && ableToSpawnPolice)
         {
-            Instantiate(policePrefab, GetRandomPoliceSpawnLocation(), Quaternion.identity);
-            Debug.Log("Police Spawn");
+            GameObject newOfficer = Instantiate(policePrefab, GetRandomPoliceSpawnLocation(), Quaternion.identity) as GameObject;
+            newOfficer.GetComponent<PoliceOfficer>().target = playerController.gameObject;
             StartCoroutine("PoliceSpawnWait");
         }
 	}

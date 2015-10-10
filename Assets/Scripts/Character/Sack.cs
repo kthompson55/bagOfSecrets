@@ -7,6 +7,9 @@ public class Sack : MonoBehaviour
 {
     public void RollAway()
     {
+        GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
+        GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezePositionZ;
+
         transform.parent = null;
         System.Random rand = new System.Random();
         float xLaunch = rand.Next(-200, 200);

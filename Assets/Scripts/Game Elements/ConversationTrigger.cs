@@ -11,6 +11,7 @@ public class ConversationTrigger : MonoBehaviour
         if(col.GetComponent<CharacterController2D>() != null)
         {
             manager.StartConversation();
+            gameObject.SetActive(false);
         }
     }
 

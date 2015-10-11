@@ -10,6 +10,7 @@ public class GameManager : MonoBehaviour
     public GameObject policePrefab;
     public GameObject[] policeSpawnpoints;
     public GameObject[] pickupLocations;
+    public Pickup[] pickupTypes;
     public ConversationPartner[] partners;
     public float policeSpawnCooldown;
     public Canvas conversationUI;
@@ -92,6 +93,9 @@ public class GameManager : MonoBehaviour
         dialogueBox.text = partner.name;
         // display Conversation UI
         conversationUI.gameObject.SetActive(true);
+
+        // DEBUG
+        StartCoroutine("DemoEndConversation");
     }
 
     ConversationPartner GetRandomConversationPartner()
@@ -104,8 +108,21 @@ public class GameManager : MonoBehaviour
 
     void EndConversation()
     {
+        // hide UI
+        conversationUI.gameObject.SetActive(false);
         // renable player movement
         playerController.transform.rotation = Quaternion.identity;
         playerController.GetComponent<CharacterController2D>().enabled = true;
+    }
+
+    IEnumerator DemoEndConversation()
+    {
+        yield return new WaitForSeconds(2.5f);
+        EndConversation();
+    }
+
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.gray;
     }
 }

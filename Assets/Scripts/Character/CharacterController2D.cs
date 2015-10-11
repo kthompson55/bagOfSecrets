@@ -26,6 +26,7 @@ public class CharacterController2D : MonoBehaviour
     private float jumpTracking;
     private bool fallen;
     private float previousGroundedY;
+    private int numPowerUps;
 
     // power-ups
     private Thief thief;
@@ -52,6 +53,8 @@ public class CharacterController2D : MonoBehaviour
         cheater.enabled = false;
         addict.enabled = false;
         liar.enabled = false;
+
+        numPowerUps = 0;
     }
 
     void Update()
@@ -164,6 +167,10 @@ public class CharacterController2D : MonoBehaviour
         {
             rotationAmount /= thief.fallingReduction;
         }
+        if(numPowerUps > 0)
+        {
+            rotationAmount += (.5f * rotationAmount) + (numPowerUps * Time.deltaTime);
+        }
         Quaternion currentFrameRotation = Quaternion.Euler(0, 0, rotationAmount);
 
         // apply movement and rotation
@@ -218,6 +225,30 @@ public class CharacterController2D : MonoBehaviour
                 liar.enabled = true;
                 break;
         }
+        numPowerUps++;
+    }
+
+    public void DisablePowerUp(Pickup.PickupType type)
+    {
+        switch (type)
+        {
+            case Pickup.PickupType.THIEF:
+                thief.enabled = true;
+                break;
+            case Pickup.PickupType.MURDERER:
+                murderer.enabled = true;
+                break;
+            case Pickup.PickupType.CHEATER:
+                cheater.enabled = true;
+                break;
+            case Pickup.PickupType.ADDICT:
+                addict.enabled = true;
+                break;
+            case Pickup.PickupType.LIAR:
+                liar.enabled = true;
+                break;
+        }
+        numPowerUps--;
     }
 
     public bool HasSecrets()

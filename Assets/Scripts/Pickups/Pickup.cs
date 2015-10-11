@@ -9,7 +9,8 @@ public class Pickup : MonoBehaviour
         MURDERER,
         CHEATER,
         ADDICT,
-        LIAR
+        LIAR,
+		NONE
     };
 
     public PickupType type;

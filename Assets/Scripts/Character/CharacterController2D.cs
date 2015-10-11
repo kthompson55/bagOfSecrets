@@ -62,11 +62,6 @@ public class CharacterController2D : MonoBehaviour
         if(!fallen)
         {
             HandleMovement();
-            if(cheater.enabled && Input.GetButton("Cheat") && cheater.CanCheat())
-            {
-                transform.rotation = Quaternion.identity;
-                cheater.Cheat();
-            }
         }
     }
 
@@ -97,7 +92,6 @@ public class CharacterController2D : MonoBehaviour
         {
             if (Input.GetButton("Jump"))
             {
-                Vector3 jumpForce = new Vector3(0, jumpHeight, 0);
                 jumpTracking = 0;
                 jumping = true;
             }
@@ -107,7 +101,8 @@ public class CharacterController2D : MonoBehaviour
             float jumpShift = jumpSpeed * Time.deltaTime;
             jumpTracking += jumpShift;
             verticalMove = jumpShift;
-            if (jumpTracking >= jumpHeight)
+            float maxJumpHeight = cheater.enabled ? jumpHeight * cheater.jumpModifier : jumpHeight;
+            if (jumpTracking >= maxJumpHeight)
             {
                 jumping = false;
             }
@@ -169,7 +164,7 @@ public class CharacterController2D : MonoBehaviour
         }
         if(numPowerUps > 0)
         {
-            rotationAmount += (.5f * rotationAmount) + (numPowerUps * Time.deltaTime);
+            rotationAmount += ((numPowerUps) * Time.deltaTime) * Time.deltaTime;
         }
         Quaternion currentFrameRotation = Quaternion.Euler(0, 0, rotationAmount);
 
@@ -191,12 +186,20 @@ public class CharacterController2D : MonoBehaviour
 
     public void Fall()
     {
-        sack.GetComponent<Sack>().RollAway();
-        fallen = true;
-        GetComponent<Rigidbody>().useGravity = true;
-        GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezePositionZ;
-        controller.enabled = false;
-        StartCoroutine("ReloadLevel");
+        if(liar.enabled && liar.CanLie())
+        {
+            liar.Lie();
+            transform.rotation = Quaternion.identity;
+        }
+        else
+        {
+            sack.GetComponent<Sack>().RollAway();
+            fallen = true;
+            GetComponent<Rigidbody>().useGravity = true;
+            GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezePositionZ;
+            controller.enabled = false;
+            StartCoroutine("ReloadLevel");
+        }
     }
 
     IEnumerator ReloadLevel()
@@ -226,6 +229,8 @@ public class CharacterController2D : MonoBehaviour
                 break;
         }
         numPowerUps++;
+        Vector3 sackScale = sack.transform.localScale;
+        sack.transform.localScale = new Vector3(sackScale.x + .25f, sackScale.y + .25f, sackScale.z + .25f);
     }
 
     public void DisablePowerUp(Pickup.PickupType type)
@@ -251,24 +256,14 @@ public class CharacterController2D : MonoBehaviour
         numPowerUps--;
     }
 
-    public bool HasIllegalSecrets()
+    public bool HasSecrets()
     {
-        return thief.enabled || murderer.enabled || addict.enabled;
-    }
-
-    public bool IsMurderer()
-    {
-        return murderer.enabled;
+        return thief.enabled || murderer.enabled || addict.enabled || liar.enabled || cheater.enabled;
     }
 
     public bool CanMurder()
     {
-        return murderer.CanKill() && murderer.enabled;
-    }
-
-    public void Murder()
-    {
-        murderer.Kill();
+        return murderer.enabled;
     }
 
     public bool CanLie()

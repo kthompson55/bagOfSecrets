@@ -35,9 +35,8 @@ public class PoliceOfficer : MonoBehaviour
         CharacterController2D player = col.gameObject.GetComponent<CharacterController2D>();
         if(player != null)
         {
-            if(player.IsMurderer() && player.CanMurder())
+            if(player.CanMurder())
             {
-                player.Murder();
                 gameManager.RemoveOfficer(this);
                 Destroy(gameObject);
             }

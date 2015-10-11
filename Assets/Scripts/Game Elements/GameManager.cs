@@ -10,7 +10,9 @@ public class GameManager : MonoBehaviour
     public GameObject policePrefab;
     public GameObject[] policeSpawnpoints;
     public GameObject[] pickupLocations;
+	public AudioSource[] audioTracks;
     public Pickup[] pickupTypes;
+	public ConversationPartner introductionPartner;
     public ConversationPartner[] partners;
     public float policeSpawnCooldown;
     public int policePerSpawn;
@@ -21,6 +23,8 @@ public class GameManager : MonoBehaviour
     private List<PoliceOfficer> officers;
     private bool ableToSpawnPolice;
     private bool conversing;
+	private Image positiveSelf;
+	private Image negativeSelf; 
     private Image selfBackground;
     private Image otherBackground;
     private Button takeSecretBtn;
@@ -32,6 +36,7 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+		// hook up GUI elements
         foreach(Transform child in conversationUI.transform)
         {
             if(child.name.Contains("PlayerSpeaking"))
@@ -62,7 +67,16 @@ public class GameManager : MonoBehaviour
             {
                 refuseSecretBtn = child.gameObject.GetComponent<Button>();
             }
+			else if(child.name.Contains ("PositiveSelf"))
+			{
+				positiveSelf = child.gameObject.GetComponent<Image>();
+			}
+			else if(child.name.Contains ("NegativeSelf"))
+			{
+				negativeSelf = child.gameObject.GetComponent<Image>();
+			}
         }
+		// hook up player
         foreach(Transform child in player.transform)
         {
             if(child.GetComponent<CharacterController2D>() != null)
@@ -71,6 +85,14 @@ public class GameManager : MonoBehaviour
                 break;
             }
         }
+		//prepare audio
+		foreach(AudioSource source in audioTracks)
+		{
+			if(!source.gameObject.name.Contains("1"))
+			{
+				source.volume = 0;
+			}
+		}
         ableToSpawnPolice = true;
         conversing = false;
         remainingCharacters = new List<ConversationPartner>(partners);
@@ -100,11 +122,19 @@ public class GameManager : MonoBehaviour
             {
                 if (currentConversationLine >= currentPartner.conversation.Length)
                 {
-                    dialogueBox.text = "";
-                    takeSecretBtn.gameObject.SetActive(true);
-                    takeSecretBtn.enabled = true;
-                    refuseSecretBtn.gameObject.SetActive(true);
-                    refuseSecretBtn.enabled = true;
+					dialogueBox.text = "";
+					if(currentPartner.secretType == Pickup.PickupType.NONE)
+					{
+						EndConversation();
+					}
+					else
+					{
+						dialogueBox.text = "";
+						takeSecretBtn.gameObject.SetActive(true);
+						takeSecretBtn.enabled = true;
+						refuseSecretBtn.gameObject.SetActive(true);
+						refuseSecretBtn.enabled = true;
+					}
                 }
                 else
                 {
@@ -113,11 +143,15 @@ public class GameManager : MonoBehaviour
                     {
                         selfBackground.gameObject.SetActive(true);
                         otherBackground.gameObject.SetActive(false);
+						positiveSelf.gameObject.SetActive (true);
+						negativeSelf.gameObject.SetActive (false);
                     }
                     else
                     {
                         selfBackground.gameObject.SetActive(false);
                         otherBackground.gameObject.SetActive(true);
+						positiveSelf.gameObject.SetActive (false);
+						negativeSelf.gameObject.SetActive(true);
                     }
                     currentConversationLine++;
                 }
@@ -127,6 +161,24 @@ public class GameManager : MonoBehaviour
 
     public void TakeSecret()
     {
+		switch (currentPartner.secretType)
+		{
+			case Pickup.PickupType.ADDICT:
+				audioTracks[1].volume = 1.0f;
+				break;
+			case Pickup.PickupType.CHEATER:
+				audioTracks[2].volume = 1.0f;
+				break;
+			case Pickup.PickupType.LIAR:
+				audioTracks[1].volume = 1.0f;	
+				break;
+			case Pickup.PickupType.MURDERER:
+				audioTracks[1].volume = 1.0f;
+				break;
+			case Pickup.PickupType.THIEF:
+				audioTracks[1].volume = 1.0f;	
+				break;
+		}
         playerController.EnablePowerUp(currentPartner.secretType);
         EndConversation();
     }
@@ -151,6 +203,39 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(policeSpawnCooldown);
         ableToSpawnPolice = true;
     }
+
+	public void StartIntroductionConversation()
+	{
+		// disable player movement
+		playerController.GetComponent<CharacterController2D>().enabled = false;
+		// choose partner
+		currentPartner = introductionPartner;
+		// display Conversation UI
+		conversationUI.gameObject.SetActive(true);
+		// halt police officers
+		foreach(PoliceOfficer officer in officers)
+		{
+			officer.GetComponent<NavMeshAgent>().Stop();
+		}
+		conversing = true;
+		currentConversationLine = 0;
+		dialogueBox.text = currentPartner.conversation[currentConversationLine];
+		if (currentPartner.playerSpeaking[currentConversationLine])
+		{
+			selfBackground.gameObject.SetActive(true);
+			otherBackground.gameObject.SetActive(false);
+			positiveSelf.gameObject.SetActive (true);
+			negativeSelf.gameObject.SetActive (false);
+		}
+		else
+		{
+			selfBackground.gameObject.SetActive(false);
+			otherBackground.gameObject.SetActive(true);
+			positiveSelf.gameObject.SetActive (false);
+			negativeSelf.gameObject.SetActive(true);
+		}
+		currentConversationLine++;
+	}
 
     public void StartConversation()
     {
@@ -190,16 +275,20 @@ public class GameManager : MonoBehaviour
         conversing = true;
         currentConversationLine = 0;
         dialogueBox.text = currentPartner.conversation[currentConversationLine];
-        if (currentPartner.playerSpeaking[currentConversationLine])
-        {
-            selfBackground.gameObject.SetActive(true);
-            otherBackground.gameObject.SetActive(false);
-        }
-        else
-        {
-            selfBackground.gameObject.SetActive(false);
-            otherBackground.gameObject.SetActive(true);
-        }
+		if (currentPartner.playerSpeaking[currentConversationLine])
+		{
+			selfBackground.gameObject.SetActive(true);
+			otherBackground.gameObject.SetActive(false);
+			positiveSelf.gameObject.SetActive (true);
+			negativeSelf.gameObject.SetActive (false);
+		}
+		else
+		{
+			selfBackground.gameObject.SetActive(false);
+			otherBackground.gameObject.SetActive(true);
+			positiveSelf.gameObject.SetActive (false);
+			negativeSelf.gameObject.SetActive(true);
+		}
         currentConversationLine++;
     }
 

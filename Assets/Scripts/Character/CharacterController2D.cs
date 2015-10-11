@@ -230,7 +230,7 @@ public class CharacterController2D : MonoBehaviour
         }
         numPowerUps++;
         Vector3 sackScale = sack.transform.localScale;
-        sack.transform.localScale = new Vector3(sackScale.x + .25f, sackScale.y + .25f, sackScale.z + .25f);
+        sack.transform.localScale = new Vector3(sackScale.x + .5f, sackScale.y + .5f, sackScale.z + .5f);
     }
 
     public void DisablePowerUp(Pickup.PickupType type)

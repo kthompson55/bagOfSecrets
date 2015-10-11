@@ -251,7 +251,7 @@ public class CharacterController2D : MonoBehaviour
         numPowerUps--;
     }
 
-    public bool HasSecrets()
+    public bool HasIllegalSecrets()
     {
         return thief.enabled || murderer.enabled || addict.enabled;
     }
@@ -263,11 +263,21 @@ public class CharacterController2D : MonoBehaviour
 
     public bool CanMurder()
     {
-        return murderer.CanKill();
+        return murderer.CanKill() && murderer.enabled;
     }
 
     public void Murder()
     {
         murderer.Kill();
+    }
+
+    public bool CanLie()
+    {
+        return liar.CanLie() && liar.enabled;
+    }
+
+    public void Lie()
+    {
+        liar.Lie();
     }
 }

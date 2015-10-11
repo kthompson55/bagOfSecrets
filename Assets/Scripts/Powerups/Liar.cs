@@ -1,15 +1,23 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Liar : MonoBehaviour {
+public class Liar : MonoBehaviour 
+{
+    public int numUses;
+    private int remainingUses;
 
-	// Use this for initialization
-	void Start () {
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
+    void Start()
+    {
+        remainingUses = numUses;
+    }
+
+    public void Lie()
+    {
+        remainingUses--;
+    }
+
+    public bool CanLie()
+    {
+        return remainingUses > 0;
+    }
 }

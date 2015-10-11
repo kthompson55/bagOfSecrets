@@ -7,7 +7,7 @@ public class LevelExit : MonoBehaviour
     {
         if(col.gameObject.GetComponent<CharacterController2D>() != null)
         {
-            Application.LoadLevel(PlayerPrefs.GetString("MainMenu"));
+            Application.LoadLevel("MainMenu");
         }
     }
 }

@@ -15,8 +15,8 @@ public class CharacterController2D : MonoBehaviour
     public float backwardMoveSpeed;
     public float jumpHeight;
     public float jumpSpeed;
-    public float forwardRotationSpeed;
-    public float backwardRotationSpeed;
+    public float movementRotationSpeed;
+    public float rotationSpeed;
     public float fallingSpeedModifier;
     public float fallDownAngle;
     public float jumpRotationInfluence;
@@ -25,6 +25,7 @@ public class CharacterController2D : MonoBehaviour
     private bool jumping;
     private float jumpTracking;
     private bool fallen;
+    private float previousGroundedY;
 
     // power-ups
     private Thief thief;
@@ -38,6 +39,7 @@ public class CharacterController2D : MonoBehaviour
         controller = GetComponent<CharacterController>();
         jumping = false;
         fallen = false;
+        previousGroundedY = transform.position.y;
 
         thief = GetComponent<Thief>();
         murderer = GetComponent<Murderer>();
@@ -62,6 +64,14 @@ public class CharacterController2D : MonoBehaviour
                 transform.rotation = Quaternion.identity;
                 cheater.Cheat();
             }
+        }
+    }
+
+    void LateUpdate()
+    {
+        if(transform.position.z != 44.2f)
+        {
+            transform.position = new Vector3(transform.position.x, transform.position.y, 44.2f);
         }
     }
 
@@ -109,11 +119,11 @@ public class CharacterController2D : MonoBehaviour
         // rotate based off the type of movement made this frame
         if (horizontalMove > 0)
         {
-            rotationAmount = (horizontalMove * Time.deltaTime) * forwardRotationSpeed;
+            rotationAmount = (horizontalMove * Time.deltaTime) * movementRotationSpeed;
         }
         else if (horizontalMove < 0)
         {
-            rotationAmount = (horizontalMove * Time.deltaTime) * backwardRotationSpeed;
+            rotationAmount = (horizontalMove * Time.deltaTime) * movementRotationSpeed;
         }
         else if(transform.rotation.eulerAngles.z != 0)
         {
@@ -131,6 +141,25 @@ public class CharacterController2D : MonoBehaviour
         {
             rotationAmount *= verticalMove * jumpRotationInfluence;
         }
+
+        if (!jumping && previousGroundedY != transform.position.y)
+        {
+            if(previousGroundedY < transform.position.y)
+            {
+                rotationAmount -= Mathf.Sign(horizontalMove) * Mathf.Abs(transform.position.y - previousGroundedY) * Time.deltaTime;
+            }
+            else
+            {
+                rotationAmount += Mathf.Sign(horizontalMove) * Mathf.Abs(transform.position.y - previousGroundedY) * Time.deltaTime;
+            }
+        }
+
+        float rotationInput = Input.GetAxis("Balance");
+        if(rotationInput != 0)
+        {
+            rotationAmount -= rotationInput * Time.deltaTime * rotationSpeed;
+        }
+
         if(thief.enabled)
         {
             rotationAmount /= thief.fallingReduction;
@@ -160,6 +189,13 @@ public class CharacterController2D : MonoBehaviour
         GetComponent<Rigidbody>().useGravity = true;
         GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezePositionZ;
         controller.enabled = false;
+        StartCoroutine("ReloadLevel");
+    }
+
+    IEnumerator ReloadLevel()
+    {
+        yield return new WaitForSeconds(5);
+        Application.LoadLevel(Application.loadedLevel);
     }
 
     public void EnablePowerUp(Pickup.PickupType type)
@@ -167,23 +203,18 @@ public class CharacterController2D : MonoBehaviour
         switch (type)
         {
             case Pickup.PickupType.THIEF:
-                Debug.Log("Thief enabled");
                 thief.enabled = true;
                 break;
             case Pickup.PickupType.MURDERER:
-                Debug.Log("Murderer enabled");
                 murderer.enabled = true;
                 break;
             case Pickup.PickupType.CHEATER:
-                Debug.Log("Cheater enabled");
                 cheater.enabled = true;
                 break;
             case Pickup.PickupType.ADDICT:
-                Debug.Log("Addict enabled");
                 addict.enabled = true;
                 break;
             case Pickup.PickupType.LIAR:
-                Debug.Log("Liar enabled");
                 liar.enabled = true;
                 break;
         }

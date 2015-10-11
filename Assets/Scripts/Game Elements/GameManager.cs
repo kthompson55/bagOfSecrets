@@ -13,6 +13,7 @@ public class GameManager : MonoBehaviour
     public Pickup[] pickupTypes;
     public ConversationPartner[] partners;
     public float policeSpawnCooldown;
+    public int policePerSpawn;
     public Canvas conversationUI;
 
     private CharacterController2D playerController;
@@ -68,12 +69,30 @@ public class GameManager : MonoBehaviour
 	
 	void Update () 
     {
-	    if(playerController.HasSecrets() && ableToSpawnPolice)
+        // spawn police
+	    if(playerController.HasIllegalSecrets() && ableToSpawnPolice)
         {
-            GameObject newOfficer = Instantiate(policePrefab, GetRandomPoliceSpawnLocation(), Quaternion.identity) as GameObject;
-            newOfficer.GetComponent<PoliceOfficer>().target = playerController.gameObject;
-            StartCoroutine("PoliceSpawnWait");
+            for(int i = 0; i < policePerSpawn; i++)
+            {
+                Vector3 randomLocation = GetRandomPoliceSpawnLocation();
+                GameObject newOfficer = Instantiate(policePrefab, randomLocation, Quaternion.identity) as GameObject;
+                newOfficer.GetComponent<PoliceOfficer>().target = playerController.gameObject;
+                newOfficer.GetComponent<PoliceOfficer>().gameManager = this;
+                officers.Add(newOfficer.GetComponent<PoliceOfficer>());
+                StartCoroutine("PoliceSpawnWait");
+            }
         }
+        if(Input.GetButtonDown("Lie") && playerController.CanLie())
+        {
+            playerController.Lie();
+            while(officers.Count > 0)
+            {
+                PoliceOfficer toDestroy = officers[0];
+                Destroy(officers[0].gameObject);
+                officers.Remove(toDestroy);
+            }
+        }
+        // halt gameplay for conversation
         if(conversing)
         {
             ableToSpawnPolice = false;
@@ -104,7 +123,8 @@ public class GameManager : MonoBehaviour
 
     Vector3 GetRandomPoliceSpawnLocation()
     {
-        System.Random rand = new System.Random();
+        int now = (int)(DateTime.Now.Ticks / 10000);
+        System.Random rand = new System.Random(now);
         int index = rand.Next(0, policeSpawnpoints.Length);
         return policeSpawnpoints[index].transform.position;
     }
@@ -189,6 +209,7 @@ public class GameManager : MonoBehaviour
         }
         // end conversation
         conversing = false;
+        ableToSpawnPolice = true;
     }
 
     IEnumerator DemoEndConversation()
@@ -200,5 +221,10 @@ public class GameManager : MonoBehaviour
     void OnDrawGizmos()
     {
         Gizmos.color = Color.gray;
+    }
+
+    public void RemoveOfficer(PoliceOfficer officer)
+    {
+        officers.Remove(officer);
     }
 }

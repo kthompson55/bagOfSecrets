@@ -4,6 +4,7 @@ using System.Collections;
 [RequireComponent(typeof(NavMeshAgent))]
 public class PoliceOfficer : MonoBehaviour 
 {
+    public GameManager gameManager;
     public GameObject target;
 
     private NavMeshAgent agent;
@@ -21,6 +22,14 @@ public class PoliceOfficer : MonoBehaviour
         agent.destination = target.transform.position;
 	}
 
+    void LateUpdate()
+    {
+        if(transform.position.z != 44.2f)
+        {
+            transform.position = new Vector3(transform.position.x, transform.position.y, 44.2f);
+        }
+    }
+
     void OnTriggerEnter(Collider col)
     {
         CharacterController2D player = col.gameObject.GetComponent<CharacterController2D>();
@@ -29,6 +38,7 @@ public class PoliceOfficer : MonoBehaviour
             if(player.IsMurderer() && player.CanMurder())
             {
                 player.Murder();
+                gameManager.RemoveOfficer(this);
                 Destroy(gameObject);
             }
             else

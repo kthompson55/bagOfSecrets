@@ -67,6 +67,14 @@ public class CharacterController2D : MonoBehaviour
         }
     }
 
+    void LateUpdate()
+    {
+        if(transform.position.z != 44.2f)
+        {
+            transform.position = new Vector3(transform.position.x, transform.position.y, 44.2f);
+        }
+    }
+
     void HandleMovement()
     {
         // move faster forward than backwards
@@ -195,23 +203,18 @@ public class CharacterController2D : MonoBehaviour
         switch (type)
         {
             case Pickup.PickupType.THIEF:
-                Debug.Log("Thief enabled");
                 thief.enabled = true;
                 break;
             case Pickup.PickupType.MURDERER:
-                Debug.Log("Murderer enabled");
                 murderer.enabled = true;
                 break;
             case Pickup.PickupType.CHEATER:
-                Debug.Log("Cheater enabled");
                 cheater.enabled = true;
                 break;
             case Pickup.PickupType.ADDICT:
-                Debug.Log("Addict enabled");
                 addict.enabled = true;
                 break;
             case Pickup.PickupType.LIAR:
-                Debug.Log("Liar enabled");
                 liar.enabled = true;
                 break;
         }

@@ -17,11 +17,15 @@ public class GameManager : MonoBehaviour
 
     private CharacterController2D playerController;
     private List<ConversationPartner> remainingCharacters;
+    private List<PoliceOfficer> officers;
     private bool ableToSpawnPolice;
+    private bool conversing;
     private Image selfBackground;
     private Image otherBackground;
     private Text dialogueBox;
     private Vector3[] optionLocations = new Vector3[4];
+    private ConversationPartner currentPartner;
+    private int currentConversationLine;
 
     void Start()
     {
@@ -57,7 +61,9 @@ public class GameManager : MonoBehaviour
             }
         }
         ableToSpawnPolice = true;
+        conversing = false;
         remainingCharacters = new List<ConversationPartner>(partners);
+        officers = new List<PoliceOfficer>();
     }
 	
 	void Update () 
@@ -67,6 +73,32 @@ public class GameManager : MonoBehaviour
             GameObject newOfficer = Instantiate(policePrefab, GetRandomPoliceSpawnLocation(), Quaternion.identity) as GameObject;
             newOfficer.GetComponent<PoliceOfficer>().target = playerController.gameObject;
             StartCoroutine("PoliceSpawnWait");
+        }
+        if(conversing)
+        {
+            ableToSpawnPolice = false;
+            if(Input.GetButtonDown("Progress"))
+            {
+                if (currentConversationLine >= currentPartner.conversation.Length)
+                {
+                    EndConversation();
+                }
+                else
+                {
+                    dialogueBox.text = currentPartner.conversation[currentConversationLine];
+                    if (currentPartner.playerSpeaking[currentConversationLine])
+                    {
+                        selfBackground.gameObject.SetActive(true);
+                        otherBackground.gameObject.SetActive(false);
+                    }
+                    else
+                    {
+                        selfBackground.gameObject.SetActive(false);
+                        otherBackground.gameObject.SetActive(true);
+                    }
+                    currentConversationLine++;
+                }
+            }
         }
 	}
 
@@ -89,13 +121,50 @@ public class GameManager : MonoBehaviour
         // disable player movement
         playerController.GetComponent<CharacterController2D>().enabled = false;
         // choose partner
-        ConversationPartner partner = GetRandomConversationPartner();
-        dialogueBox.text = partner.name;
+        currentPartner = GetRandomConversationPartner();
         // display Conversation UI
         conversationUI.gameObject.SetActive(true);
-
-        // DEBUG
-        StartCoroutine("DemoEndConversation");
+        // halt police officers
+        foreach(PoliceOfficer officer in officers)
+        {
+            officer.GetComponent<NavMeshAgent>().Stop();
+        }
+        // set the next pick up item
+        GameObject toBeSpawned = null;
+        switch (currentPartner.secretType)
+        {
+            case Pickup.PickupType.ADDICT:
+                toBeSpawned = pickupTypes[0].gameObject;
+                break;
+            case Pickup.PickupType.CHEATER:
+                toBeSpawned = pickupTypes[1].gameObject;
+                break;
+            case Pickup.PickupType.LIAR:
+                toBeSpawned = pickupTypes[2].gameObject;
+                break;
+            case Pickup.PickupType.MURDERER:
+                toBeSpawned = pickupTypes[3].gameObject;
+                break;
+            case Pickup.PickupType.THIEF:
+                toBeSpawned = pickupTypes[4].gameObject;
+                break;
+        }
+        Instantiate(toBeSpawned, pickupLocations[(5 - remainingCharacters.Count) - 1].transform.position, Quaternion.identity);
+        // start conversation
+        conversing = true;
+        currentConversationLine = 0;
+        dialogueBox.text = currentPartner.conversation[currentConversationLine];
+        if (currentPartner.playerSpeaking[currentConversationLine])
+        {
+            selfBackground.gameObject.SetActive(true);
+            otherBackground.gameObject.SetActive(false);
+        }
+        else
+        {
+            selfBackground.gameObject.SetActive(false);
+            otherBackground.gameObject.SetActive(true);
+        }
+        currentConversationLine++;
     }
 
     ConversationPartner GetRandomConversationPartner()
@@ -110,9 +179,16 @@ public class GameManager : MonoBehaviour
     {
         // hide UI
         conversationUI.gameObject.SetActive(false);
-        // renable player movement
+        // reenable player movement
         playerController.transform.rotation = Quaternion.identity;
         playerController.GetComponent<CharacterController2D>().enabled = true;
+        // resume police movement
+        foreach(PoliceOfficer officer in officers)
+        {
+            officer.GetComponent<NavMeshAgent>().Resume();
+        }
+        // end conversation
+        conversing = false;
     }
 
     IEnumerator DemoEndConversation()

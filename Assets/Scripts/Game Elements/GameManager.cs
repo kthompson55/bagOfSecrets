@@ -23,6 +23,8 @@ public class GameManager : MonoBehaviour
     private bool conversing;
     private Image selfBackground;
     private Image otherBackground;
+    private Button takeSecretBtn;
+    private Button refuseSecretBtn;
     private Text dialogueBox;
     private Vector3[] optionLocations = new Vector3[4];
     private ConversationPartner currentPartner;
@@ -52,6 +54,14 @@ public class GameManager : MonoBehaviour
             {
                 dialogueBox = child.gameObject.GetComponent<Text>();
             }
+            else if(child.name.Contains("TakeSecretButton"))
+            {
+                takeSecretBtn = child.gameObject.GetComponent<Button>();
+            }
+            else if (child.name.Contains("RefuseSecretButton"))
+            {
+                refuseSecretBtn = child.gameObject.GetComponent<Button>();
+            }
         }
         foreach(Transform child in player.transform)
         {
@@ -70,7 +80,7 @@ public class GameManager : MonoBehaviour
 	void Update () 
     {
         // spawn police
-	    if(playerController.HasIllegalSecrets() && ableToSpawnPolice)
+	    if(ableToSpawnPolice)
         {
             for(int i = 0; i < policePerSpawn; i++)
             {
@@ -82,16 +92,6 @@ public class GameManager : MonoBehaviour
                 StartCoroutine("PoliceSpawnWait");
             }
         }
-        if(Input.GetButtonDown("Lie") && playerController.CanLie())
-        {
-            playerController.Lie();
-            while(officers.Count > 0)
-            {
-                PoliceOfficer toDestroy = officers[0];
-                Destroy(officers[0].gameObject);
-                officers.Remove(toDestroy);
-            }
-        }
         // halt gameplay for conversation
         if(conversing)
         {
@@ -100,7 +100,11 @@ public class GameManager : MonoBehaviour
             {
                 if (currentConversationLine >= currentPartner.conversation.Length)
                 {
-                    EndConversation();
+                    dialogueBox.text = "";
+                    takeSecretBtn.gameObject.SetActive(true);
+                    takeSecretBtn.enabled = true;
+                    refuseSecretBtn.gameObject.SetActive(true);
+                    refuseSecretBtn.enabled = true;
                 }
                 else
                 {
@@ -120,6 +124,18 @@ public class GameManager : MonoBehaviour
             }
         }
 	}
+
+    public void TakeSecret()
+    {
+        playerController.EnablePowerUp(currentPartner.secretType);
+        EndConversation();
+    }
+
+    public void RefuseSecret()
+    {
+        playerController.DisablePowerUp(currentPartner.secretType);
+        EndConversation();
+    }
 
     Vector3 GetRandomPoliceSpawnLocation()
     {
@@ -150,26 +166,26 @@ public class GameManager : MonoBehaviour
             officer.GetComponent<NavMeshAgent>().Stop();
         }
         // set the next pick up item
-        GameObject toBeSpawned = null;
-        switch (currentPartner.secretType)
-        {
-            case Pickup.PickupType.ADDICT:
-                toBeSpawned = pickupTypes[0].gameObject;
-                break;
-            case Pickup.PickupType.CHEATER:
-                toBeSpawned = pickupTypes[1].gameObject;
-                break;
-            case Pickup.PickupType.LIAR:
-                toBeSpawned = pickupTypes[2].gameObject;
-                break;
-            case Pickup.PickupType.MURDERER:
-                toBeSpawned = pickupTypes[3].gameObject;
-                break;
-            case Pickup.PickupType.THIEF:
-                toBeSpawned = pickupTypes[4].gameObject;
-                break;
-        }
-        Instantiate(toBeSpawned, pickupLocations[(5 - remainingCharacters.Count) - 1].transform.position, Quaternion.identity);
+        //GameObject toBeSpawned = null;
+        //switch (currentPartner.secretType)
+        //{
+        //    case Pickup.PickupType.ADDICT:
+        //        toBeSpawned = pickupTypes[0].gameObject;
+        //        break;
+        //    case Pickup.PickupType.CHEATER:
+        //        toBeSpawned = pickupTypes[1].gameObject;
+        //        break;
+        //    case Pickup.PickupType.LIAR:
+        //        toBeSpawned = pickupTypes[2].gameObject;
+        //        break;
+        //    case Pickup.PickupType.MURDERER:
+        //        toBeSpawned = pickupTypes[3].gameObject;
+        //        break;
+        //    case Pickup.PickupType.THIEF:
+        //        toBeSpawned = pickupTypes[4].gameObject;
+        //        break;
+        //}
+        //Instantiate(toBeSpawned, pickupLocations[(5 - remainingCharacters.Count) - 1].transform.position, Quaternion.identity);
         // start conversation
         conversing = true;
         currentConversationLine = 0;
@@ -199,6 +215,8 @@ public class GameManager : MonoBehaviour
     {
         // hide UI
         conversationUI.gameObject.SetActive(false);
+        takeSecretBtn.gameObject.SetActive(false);
+        refuseSecretBtn.gameObject.SetActive(false);
         // reenable player movement
         playerController.transform.rotation = Quaternion.identity;
         playerController.GetComponent<CharacterController2D>().enabled = true;
